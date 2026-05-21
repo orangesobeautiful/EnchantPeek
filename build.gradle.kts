@@ -1,6 +1,7 @@
 plugins {
     id("net.fabricmc.fabric-loom-remap") version "1.14.4"
     id("com.diffplug.spotless") version "7.2.1"
+    id("com.modrinth.minotaur") version "2.9.0"
     `maven-publish`
     checkstyle
 }
@@ -103,6 +104,23 @@ tasks.withType<Checkstyle>().configureEach {
     reports {
         xml.required.set(false)
         html.required.set(true)
+    }
+}
+
+modrinth {
+    token.set(providers.environmentVariable("MODRINTH_TOKEN"))
+    projectId.set(providers.gradleProperty("modrinthProjectId").orElse(providers.environmentVariable("MODRINTH_PROJECT_ID")))
+    versionNumber.set(project.version.toString())
+    versionName.set("EnchantPeek $modVersion for Minecraft $minecraftVersion")
+    versionType.set("release")
+    uploadFile.set(tasks.named("remapJar"))
+    gameVersions.add(minecraftVersion)
+    loaders.add("fabric")
+    changelog.set(providers.environmentVariable("MODRINTH_CHANGELOG").orElse("No changelog was specified."))
+    debugMode.set(providers.gradleProperty("modrinthDebug").map(String::toBoolean).orElse(false))
+
+    dependencies {
+        required.project("fabric-api")
     }
 }
 

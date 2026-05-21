@@ -1,0 +1,40 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+env:
+  MODRINTH_PROJECT_ID: ${{ vars.MODRINTH_PROJECT_ID }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up mise
+        uses: jdx/mise-action@v4
+
+      - name: Build release artifacts
+        run: |
+          ./gradlew buildActive
+          ./gradlew -p server-plugin build
+
+      - name: Upload GitHub release assets
+        uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            versions/1.21.11/build/libs/enchantpeek-1.21.11-*+1.21.11.jar
+            server-plugin/build/libs/EnchantPeekServer-*.jar
+
+      - name: Publish Fabric client mod to Modrinth
+        run: ./gradlew publishActiveModrinth
+        env:
+          MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+          MODRINTH_CHANGELOG: ${{ github.event.release.body }}

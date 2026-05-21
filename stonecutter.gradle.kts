@@ -18,6 +18,12 @@ tasks.register("buildActive") {
     dependsOn(":$activeMinecraftVersion:build")
 }
 
+tasks.register("publishActiveModrinth") {
+    group = "publishing"
+    description = "Publishes the active Minecraft version to Modrinth."
+    dependsOn(":$activeMinecraftVersion:modrinth")
+}
+
 tasks.register("runActiveClient") {
     group = "fabric"
     description = "Runs the active Minecraft version's development client."
