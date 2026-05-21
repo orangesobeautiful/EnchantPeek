@@ -1,0 +1,16 @@
+.gradle/
+build/
+run/
+versions/*/build/
+server-plugin/.gradle/
+server-plugin/build/
+
+*.class
+*.log
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.zip
+
+.idea/
+*.iml
+.vscode/.ropeproject/

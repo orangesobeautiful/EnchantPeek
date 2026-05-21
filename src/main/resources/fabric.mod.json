@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "id": "enchantpeek",
+  "version": "${version}",
+  "name": "EnchantPeek",
+  "description": "Shows the full enchantments offered by the enchantment table.",
+  "authors": [
+    "orangesobeautiful"
+  ],
+  "contact": {
+    "sources": "https://github.com/orangesobeautiful/EnchantPeek",
+    "issues": "https://github.com/orangesobeautiful/EnchantPeek/issues"
+  },
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "io.github.orangesobeautiful.enchantpeek.EnchantPeekClient"
+    ]
+  },
+  "mixins": [
+    "enchantpeek.client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}

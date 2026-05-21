@@ -1,0 +1,10 @@
+{
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.format.settings.url": "config/eclipse/enchantpeek-style.xml",
+  "java.format.settings.profile": "EnchantPeek",
+  "java.saveActions.organizeImports": false,
+  "editor.formatOnSave": true,
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java"
+  }
+}

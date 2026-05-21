@@ -1,0 +1,8 @@
+name: EnchantPeekServer
+version: ${version}
+main: io.github.orangesobeautiful.enchantpeek.server.EnchantPeekServerPlugin
+api-version: '1.21'
+author: orangesobeautiful
+description: Server companion for EnchantPeek.
+softdepend:
+  - ExcellentEnchants
