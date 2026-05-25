@@ -18,6 +18,9 @@ public record ServerPreviewPayload(int containerId, ItemStack inputItem, List<Op
             ServerPreviewPayload::write,
             ServerPreviewPayload::read);
     private static final int PROTOCOL_VERSION = 1;
+    private static final int MAX_OPTION_COUNT = 3;
+    private static final int MAX_ENCHANTMENT_COUNT = 256;
+    private static final int MAX_STRING_BYTES = 1024;
 
     @Override
     public CustomPacketPayload.Type<ServerPreviewPayload> type() {
@@ -46,43 +49,61 @@ public record ServerPreviewPayload(int containerId, ItemStack inputItem, List<Op
     }
 
     private static ServerPreviewPayload read(RegistryFriendlyByteBuf buf) {
-        int version = buf.readInt();
+        try {
+            int version = buf.readInt();
 
-        if (version != PROTOCOL_VERSION) {
+            if (version != PROTOCOL_VERSION) {
+                throw new InvalidPayloadException();
+            }
+
+            int containerId = buf.readInt();
+            ItemStack inputItem = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
+            int optionCount = readBoundedCount(buf, MAX_OPTION_COUNT);
+            List<OptionPreview> options = new ArrayList<>(optionCount);
+
+            for (int option = 0; option < optionCount; option++) {
+                int cost = buf.readInt();
+                int enchantClue = buf.readInt();
+                int levelClue = buf.readInt();
+                int enchantmentCount = readBoundedCount(buf, MAX_ENCHANTMENT_COUNT);
+                List<EnchantmentPreview> enchantments = new ArrayList<>(enchantmentCount);
+
+                for (int index = 0; index < enchantmentCount; index++) {
+                    String id = readString(buf);
+                    int level = buf.readInt();
+                    String fallbackName = readString(buf);
+                    boolean highestTableLevel = buf.readBoolean();
+                    enchantments.add(new EnchantmentPreview(id, level, fallbackName, highestTableLevel));
+                }
+
+                options.add(new OptionPreview(cost, enchantClue, levelClue, enchantments));
+            }
+
+            return new ServerPreviewPayload(containerId, inputItem, options);
+        } catch (IndexOutOfBoundsException | InvalidPayloadException exception) {
             buf.skipBytes(buf.readableBytes());
             return new ServerPreviewPayload(-1, ItemStack.EMPTY, List.of());
         }
+    }
 
-        int containerId = buf.readInt();
-        ItemStack inputItem = ItemStack.OPTIONAL_STREAM_CODEC.decode(buf);
-        int optionCount = buf.readInt();
-        List<OptionPreview> options = new ArrayList<>(optionCount);
+    private static int readBoundedCount(RegistryFriendlyByteBuf buf, int max) {
+        int count = buf.readInt();
 
-        for (int option = 0; option < optionCount; option++) {
-            int cost = buf.readInt();
-            int enchantClue = buf.readInt();
-            int levelClue = buf.readInt();
-            int enchantmentCount = buf.readInt();
-            List<EnchantmentPreview> enchantments = new ArrayList<>(enchantmentCount);
-
-            for (int index = 0; index < enchantmentCount; index++) {
-                String id = readString(buf);
-                int level = buf.readInt();
-                String fallbackName = readString(buf);
-                boolean highestTableLevel = buf.readBoolean();
-                enchantments.add(new EnchantmentPreview(id, level, fallbackName, highestTableLevel));
-            }
-
-            options.add(new OptionPreview(cost, enchantClue, levelClue, enchantments));
+        if (count < 0 || count > max) {
+            throw new InvalidPayloadException();
         }
 
-        return new ServerPreviewPayload(containerId, inputItem, options);
+        return count;
     }
 
     private static String readString(RegistryFriendlyByteBuf buf) {
         int length = buf.readInt();
 
-        if (length <= 0) {
+        if (length < 0 || length > MAX_STRING_BYTES || length > buf.readableBytes()) {
+            throw new InvalidPayloadException();
+        }
+
+        if (length == 0) {
             return "";
         }
 
@@ -103,5 +124,9 @@ public record ServerPreviewPayload(int containerId, ItemStack inputItem, List<Op
     }
 
     public record EnchantmentPreview(String id, int level, String fallbackName, boolean highestTableLevel) {
+    }
+
+    private static final class InvalidPayloadException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }
