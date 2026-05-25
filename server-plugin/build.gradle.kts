@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "io.github.orangesobeautiful"
-version = "0.1.0"
+version = "0.1.2"
 
 dependencies {
     paperweight.paperDevBundle("1.21.11-R0.1-SNAPSHOT")
